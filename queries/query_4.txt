@@ -1,0 +1,36 @@
+                 
+DROP  PROCEDURE  IF EXISTS `p_similar_countries`;
+DELIMITER $$
+CREATE  PROCEDURE `p_similar_countries`(
+        in  p_countryName                     CHAR(30)
+     )
+BEGIN 
+   
+  DECLARE countCountry INT;
+  DECLARE cRegion char(30) ; 
+  DECLARE Clanguage char(30);
+  DECLARE cIsOfficial char(1);
+  DECLARE result char(1);
+  
+    
+  SELECT region ,  language, isofficial INTO cRegion , Clanguage , cIsOfficial    
+                 FROM country INNER JOIN countrylanguage ON code = countrycode 
+                 WHERE name = p_countryName AND isofficial ='T';  
+    
+  SELECT count(name)    INTO countCountry  FROM country INNER JOIN countrylanguage ON code = countrycode 
+                 WHERE (region ,  language, isofficial) = (cRegion , Clanguage , cIsOfficial);
+                 
+                 
+  select if( countCountry > 1 , 'T' , 'F') Into result;              
+
+      IF result='T'
+       THEN SELECT name , region ,  language, isofficial    FROM country INNER JOIN countrylanguage ON code = countrycode 
+                 WHERE (region ,  language, isofficial) = (cRegion , Clanguage , cIsOfficial);
+       ELSE
+          SELECT 'There are no countries with the same region, language and Same official language ' as ALERT;
+      END IF;
+END$$
+DELIMITER ;
+     
+call p_similar_countries('China');
+call p_similar_countries('Syria');     
